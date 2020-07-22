@@ -1,44 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
 
+const NoteApp = () => {
+  const [notes, setNotes] = useState([])
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
 
+  useEffect(() => {
+    const notesData = JSON.parse(localStorage.getItem('notes'))
+    if (notesData) setNotes(notesData)
+  }, [])
 
-const App = (props) => {
-  const { startCount } = props;
-  const [count, setCount] = new useState(startCount);
+  useEffect(() => {
+    localStorage.setItem('notes', JSON.stringify(notes))
+  }, [notes])
 
-  const addCount = () => {
-    setCount(count + 1);
+  const addNote = (e) => {
+    e.preventDefault()
+    setNotes([
+      ...notes,
+      {
+        title,
+        body
+      }
+    ])
+    setTitle('')
+    setBody('')
   }
 
-  const minusCount = () => {
-    setCount(count - 1);
-  }
-
-  const resetCount = () => {
-    setCount(startCount);
+  const removeNote = (title) => {
+    setNotes(notes.filter((note) => {
+      return note.title !== title
+    }))
   }
 
   return (
     <div>
-      <p>
-        The current count is {count}
-      </p>
-      <button onClick={minusCount}>-1</button>
-      <button onClick={resetCount}>Reset</button>
-      <button onClick={addCount}>+1</button>
+      <h1>Notes</h1>
+      {
+        notes.map((note) => (
+          <Note key={note.title} note={note} removeNote={removeNote} />
+        ))
+      }
+      <p>Add Note</p>
+      <form onSubmit={addNote}>
+        <label>Title</label>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <label>Body</label>
+        <textarea value={body} onChange={(e) => setBody(e.target.value)} />
+        <button>Add note</button>
+      </form>
+    </div >
+  )
+}
+
+const Note = ({ note, removeNote }) => {
+  useEffect(() => {
+    console.log('Setting up effect');
+
+    return () => {
+      console.log('Cleaning up effect');
+    }
+  }, [])
+
+  return (
+    <div>
+      <h3>{note.title}</h3>
+      <p>{note.body}</p>
+      <button onClick={() => removeNote(note.title)}>X</button>
     </div>
   )
 }
 
-App.defaultProps = {
-  startCount: 0
-};
-
 ReactDOM.render(
   <React.StrictMode>
-    <App startCount={0} />
+    {/* <App startCount={0} /> */}
+    <NoteApp />
   </React.StrictMode>,
   document.getElementById('root')
 );
